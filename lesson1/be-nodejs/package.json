@@ -1,0 +1,17 @@
+{
+  "name": "be-nodejs",
+  "version": "1.0.0",
+  "description": "- Install npm\r - Open commandline in the parent folder\r - Run CMD: npm init -y\r - Run CMD: npm install express cors\r - Start BE by running CMD: node server.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  }
+}
