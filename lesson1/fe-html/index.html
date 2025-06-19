@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gruß App</title>
-    <style>
+    <style>        
         /* Basis-Styling für Anfänger */
         body {
             font-family: sans-serif; /* Einfache Schriftart */
@@ -71,7 +71,7 @@
         <!-- Eingabefeld für den Namen -->
         <input type="text" id="nameInput" placeholder="Geben Sie Ihren Namen ein"><br>
 
-        <!-- Button, der das Backend aufruft -->
+        <!-- Button, der das BE aufruft -->
         <button id="greetButton">Gruß aus dem Backend generieren</button>
 
         <!-- Bereich, wo der Gruß angezeigt wird -->
@@ -79,52 +79,50 @@
 
         <!-- Bereich für Fehlermeldungen -->
         <p id="errorMessage"></p>
+
+        <p id="localGreetingOutput"></p>
+        <p id="localErrorMessage" style="color: red;"></p>
     </div>
 
     <script>
         // Wir holen uns die HTML-Elemente, mit denen wir arbeiten wollen
-        const nameInput = document.getElementById('nameInput'); // Das Eingabefeld
-        const greetButton = document.getElementById('greetButton'); // Der Button
-        const greetingOutput = document.getElementById('greetingOutput'); // Der Bereich für den Gruß
-        const errorMessage = document.getElementById('errorMessage'); // Der Bereich für Fehlermeldungen
+        const nameInput = document.getElementById('nameInput'); 
+        const greetButton = document.getElementById('greetButton');
+        const greetingOutput = document.getElementById('greetingOutput');
+        const errorMessage = document.getElementById('errorMessage');
 
-        // Die Adresse unseres Backends (muss angepasst werden!)
-        // Wenn das Backend auf dem gleichen Computer läuft, aber auf einem anderen Port,
-        // könnte es z.B. 'http://localhost:3000/greet' sein.
-        const BACKEND_URL = 'http://localhost:3000/greet'; // BITTE HIER IHRE BACKEND-URL EINFÜGEN!
+        // Die Adresse unseres BEs, entsprechend anpassen
+        const BACKEND_URL = 'http://localhost:3000/greet'; 
 
-        // Eine Funktion, die aufgerufen wird, wenn der Button geklickt wird
+        // Bei Button Klick wird Name als Json-Objekt verpackt und per REST an BE geschickt und Antwort wird angezeigt
         async function getGreeting() {
             const name = nameInput.value; // Den eingegebenen Namen auslesen
 
-            // Prüfen, ob der Name leer ist
+            // Prüfen, ob der Name leer ist, wenn ja eine entsprechende Fehlermeldung anzeigen und abbrechen
             if (name === "") {
-                errorMessage.textContent = 'Bitte geben Sie einen Namen ein.'; // Fehlermeldung zeigen
-                greetingOutput.textContent = ''; // Gruß leeren
-                return; // Funktion hier beenden
+                errorMessage.textContent = 'Bitte geben Sie einen Namen ein.';
+                greetingOutput.textContent = '';
+                return;
             }
 
             errorMessage.textContent = ''; // Alte Fehlermeldungen löschen
             greetingOutput.textContent = 'Lade Gruß...'; // Ladehinweis zeigen
 
             try {
-                // Sende eine Anfrage an das Backend
-                // Wir senden den Namen als JSON-Daten im Body der Anfrage
+                // Wir senden eine POST-Anfrage an das BE mit dem Namen als JSON-Daten
                 const response = await fetch(BACKEND_URL, {
-                    method: 'POST', // Wir nutzen die POST-Methode, um Daten zu senden
+                    method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json', // Wir sagen dem Backend, dass wir JSON senden
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ name: name }), // Den Namen in JSON umwandeln
+                    body: JSON.stringify({ name: name }),
                 });
 
-                // Prüfen, ob die Antwort des Backends erfolgreich war
+                // Prüfen, ob die BE-Antwort erfolgreich war, wenn nicht Fehlernachricht vom Server werfen
                 if (!response.ok) {
-                    const errorText = await response.text(); // Fehlernachricht vom Server lesen
+                    const errorText = await response.text();
                     throw new Error(`Fehler vom Server: ${response.status} - ${errorText}`);
                 }
-
-                // Die Antwort des Backends als JSON-Objekt lesen
                 const data = await response.json();
 
                 // Den erhaltenen Gruß im Output-Bereich anzeigen
@@ -134,18 +132,37 @@
                     errorMessage.textContent = 'Fehler: Backend sendete ungültigen Gruß.';
                     greetingOutput.textContent = '';
                 }
+                getLocalGreeting();
 
             } catch (error) {
-                // Wenn ein Fehler auftritt (z.B. Netzwerkfehler, Backend nicht erreichbar)
+                // Wenn ein Fehler auftritt (z.B. Netzwerkfehler, BE nicht erreichbar)
                 console.error('Fehler beim Abrufen des Grußes:', error);
                 errorMessage.textContent = `Ein Fehler ist aufgetreten: ${error.message}. Ist das Backend gestartet?`;
                 greetingOutput.textContent = '';
             }
         }
 
-        // Wir fügen einen Event Listener zum Button hinzu.
-        // Wenn der Button geklickt wird, ruft er unsere Funktion 'getGreeting' auf.
+        // Event-Listener zum Button hinzu, damit die Funktion 'getGreeting' aufgerufen wird, bei Klick
         greetButton.addEventListener('click', getGreeting);
+
+        // Webserver Demo, Funktion liesst eine Resource aus dem Filesystem, was nicht standalone funktioniert sondern nur mit Webserver
+        async function getLocalGreeting() {
+            localGreetingOutput.textContent = 'Lade Gruß aus dem lokalen Frontend...';
+            localErrorMessage.textContent = '';
+
+            try {
+                const response = await fetch('greeting_from_fe_fs.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP-Fehler: ${response.status}`);
+                }
+                const data = await response.json();
+                localGreetingOutput.textContent = data.greeting;
+            } catch (error) {
+                localGreetingOutput.textContent = '';
+                localErrorMessage.textContent = 'Achtung: Das Laden von lokalen Resourcen funktioniert nur mit einem Webserver!';
+                console.error(error);
+            }
+        }
     </script>
 </body>
 </html>
